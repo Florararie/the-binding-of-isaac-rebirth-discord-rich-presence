@@ -1,15 +1,18 @@
 #!/bin/bash
 
-pid="$(pgrep python -af | grep 'mods/the-binding-of-isaac-rebirth-discord-rich-presence/main.py' | awk '{print $1}')"
+mod_dir="$(cd "$(dirname "$0")" && pwd)" || exit 1
 
-if [ -n "$pid" ]; then
-    kill "$pid"
+# Stop any instance left over from a previous launch.
+if pkill -f -- "$mod_dir/main.py" 2>/dev/null; then
     echo "existing process was killed"
 fi
-sh 'REPENTOGONLauncher/REPENTOGONLauncher.exe'
 
-cd "$(dirname "$0")" || exit 1
-./venv/bin/python main.py &
+cd "$mod_dir" || exit 1
+
+# main.py watches both isaac-ng.exe and REPENTOGONLauncher.exe. It exits when
+# the game closes (or, with REPENTOGON, when the launcher closes), so no copy
+# is left running in the background.
+./venv/bin/python "$mod_dir/main.py" &
 
 args=("$@")
 
